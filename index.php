@@ -1,3 +1,4 @@
+<?php declare(strict_types=1); ?>
 <!-- Version 1.0.0 -->
 <!DOCTYPE html>
 <html lang="fr">
@@ -17,7 +18,7 @@
       p {margin:0px;}
       footer {padding-top:1em;}
     </style>
-    <?php
+    <?php 
     
       class MyDB extends SQLite3 {
         function __construct() {
@@ -39,20 +40,21 @@
     
       $sql_query = "SELECT num_day from jours WHERE date = '$today'";
     
-      $res=$db->query($sql_query);
-    
-      $row = $res->fetchArray();
-      
-      if ($row['num_day']) {
-          $msg = "La date existe";
-          $cj = $row['num_day'];
-      }
-      else {
-          $msg = "La date n'existe pas";
-          $json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/today');
-          $obj = json_decode($json);
-          $cj = $obj->codeJour;
-          $db->query("INSERT INTO jours (date,num_day) values ('$today',$cj)");
+      if ($res=$db->query($sql_query)) {
+        if ($row = $res->fetchArray()) {
+          if ($row['num_day']) {
+              $msg = "La date existe";
+              $cj = $row['num_day'];
+          }
+          else {
+            $msg = "La date n'existe pas";
+            if ($json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/today')) {
+              $obj = json_decode($json);
+              $cj = $obj->codeJour ;
+              $db->query("INSERT INTO jours (date,num_day) values ('$today',$cj)");
+            }
+          }
+        }
       }
     
       $heure = date( "H",  time());
@@ -63,20 +65,21 @@
           
           $sql_query = "SELECT num_day from jours WHERE date = '$tomorrow'";
       
-          $res=$db->query($sql_query);
-      
-          $row = $res->fetchArray();
-      
-          if (isset($row['num_day'])) {
-              $msg = "La date existe";
-              $cj1 = $row['num_day'];
-          }
-          else {
-              $msg = "La date n'existe pas";
-              $json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/tomorrow');
-              $obj1 = json_decode($json);
-              $cj1 = $obj1->codeJour;
-              $db->query("INSERT INTO jours (date,num_day) values ('$tomorrow',$cj1)");
+          if ($res=$db->query($sql_query)) {
+            if ($row = $res->fetchArray()) {
+              if (isset($row['num_day'])) {
+                  $msg = "La date existe";
+                  $cj1 = $row['num_day'];
+              }
+              else {
+                  $msg = "La date n'existe pas";
+                  if ($json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/tomorrow')) {
+                    $obj1 = json_decode($json);
+                    $cj1 = $obj1->codeJour;
+                    $db->query("INSERT INTO jours (date,num_day) values ('$tomorrow',$cj1)");
+                  }
+              }
+            }
           }
       }
     ?>
