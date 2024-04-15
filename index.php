@@ -1,4 +1,3 @@
-<?php declare(strict_types=1); ?>
 <!-- Version 1.0.0 -->
 <!DOCTYPE html>
 <html lang="fr">
@@ -18,8 +17,8 @@
       p {margin:0px;}
       footer {padding-top:1em;}
     </style>
-    <?php 
-    
+    <?php
+
       class MyDB extends SQLite3 {
         function __construct() {
           if (!file_exists("tempo.db")) {
@@ -30,56 +29,54 @@
           if (isset($cmd)) { $this->exec("$cmd"); }
         }
       }
-    
+
       $db = new MyDB();
-      
+
       date_default_timezone_set('Europe/Paris');
       $today = date("Y-m-d");
-      
+
       $cj=0;
-    
+
       $sql_query = "SELECT num_day from jours WHERE date = '$today'";
-    
-      if ($res=$db->query($sql_query)) {
-        if ($row = $res->fetchArray()) {
-          if ($row['num_day']) {
-              $msg = "La date existe";
-              $cj = $row['num_day'];
-          }
-          else {
-            $msg = "La date n'existe pas";
-            if ($json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/today')) {
-              $obj = json_decode($json);
-              $cj = $obj->codeJour ;
-              $db->query("INSERT INTO jours (date,num_day) values ('$today',$cj)");
-            }
-          }
-        }
+
+      $res=$db->query($sql_query);
+
+      $row = $res->fetchArray();
+
+      if ($row['num_day']) {
+          $msg = "La date existe";
+          $cj = $row['num_day'];
       }
-    
+      else {
+          $msg = "La date n'existe pas";
+          $json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/today');
+          $obj = json_decode($json);
+          $cj = $obj->codeJour;
+          $db->query("INSERT INTO jours (date,num_day) values ('$today',$cj)");
+      }
+
       $heure = date( "H",  time());
       if ($heure >= 11) {
           $Datetime = new Datetime('NOW', new DateTimeZone('Europe/Paris'));
           $Datetime->add(DateInterval::createFromDateString('1 day'));
           $tomorrow = $Datetime->format("Y-m-d");
-          
+
           $sql_query = "SELECT num_day from jours WHERE date = '$tomorrow'";
-      
-          if ($res=$db->query($sql_query)) {
-            if ($row = $res->fetchArray()) {
-              if (isset($row['num_day'])) {
-                  $msg = "La date existe";
-                  $cj1 = $row['num_day'];
-              }
-              else {
-                  $msg = "La date n'existe pas";
-                  if ($json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/tomorrow')) {
-                    $obj1 = json_decode($json);
-                    $cj1 = $obj1->codeJour;
-                    $db->query("INSERT INTO jours (date,num_day) values ('$tomorrow',$cj1)");
-                  }
-              }
-            }
+
+          $res=$db->query($sql_query);
+
+          $row = $res->fetchArray();
+
+          if (isset($row['num_day'])) {
+              $msg = "La date existe";
+              $cj1 = $row['num_day'];
+          }
+          else {
+              $msg = "La date n'existe pas";
+              $json = file_get_contents('https://www.api-couleur-tempo.fr/api/jourTempo/tomorrow');
+              $obj1 = json_decode($json);
+              $cj1 = $obj1->codeJour;
+              $db->query("INSERT INTO jours (date,num_day) values ('$tomorrow',$cj1)");
           }
       }
     ?>
@@ -89,7 +86,7 @@
       $couleur = array( 1 => "bleu", 2 => "blanc", 3 => "rouge", );
       $bg_color = array( 1 => "blue", 2 => "aliceblue", 3 => "red", );
       $color = array( 1 => "aliceblue", 2 => "black", 3 => "aliceblue", );
-      
+
       $tarif = array(
         "bleu"  => array("hc" => 0.1296, "hp" => 0.1609),
         "blanc" => array("hc" => 0.1486, "hp" => 0.1894),
@@ -109,11 +106,11 @@
           <h2>Aujourd'hui</h2>
           <p><?php echo $tarif[$couleur[$cj]]['hc']." / ".$tarif[$couleur[$cj]]['hp']." € ";?></p>
         </div>
-        
+
         <div class=prix style="width:<?php echo $w;?>%;">
           <p><?php echo $a;?> €</p>
         </div>
-        
+
         <?php
             if (isset($cj1)) {
         ?>
@@ -132,7 +129,7 @@
         <?php
             }
         ?>
-            
+
       </div>
     </main>
     <footer>
